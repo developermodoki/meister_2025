@@ -2,19 +2,26 @@
 #include <DHT.h>
 #include <WiFi.h>
 #include <time.h>
+#include <ArduinoMqttClient.h>
 
 
-//#define SSID "KOKI08-DYNABOOK 1420"
-//#define WIFI_PASS "653R0o0<"
-//dummy ssid&pass
+#define SSID "KOKI08-DYNABOOK 1420"
+#define WIFI_PASS "653R0o0<"
+//↑dummy ssid&pass
 #define DHT_INPUT_PIN 33
 #define DHT_TYPE DHT11
+
 #define NTP_1 "ntp.nict.jp"
 #define NTP_2 "ntp1.noc.titech.ac.jp"
 #define NTP_3 "ntp.jst.mfeed.ad.jp"
+#define MQTT_PORT 1883
+#define MQTT_URL "test.mosquitto.org"
+#define TOPIC_NAME "hidden"
 
-
+WiFiClient wifiClient;
+MqttClient mqttClient(wifiClient);
 DHT dht(DHT_INPUT_PIN, DHT_TYPE);
+
 
 void setup() {
   Serial.begin(9600);
@@ -31,7 +38,7 @@ void setup() {
     while(WiFi.begin(SSID, WIFI_PASS) != WL_CONNECTED) {
       delay(2000);
       i++;
-      if(i <= 3) break;
+      if(i > 4) break;
     };
   }
 
@@ -45,22 +52,44 @@ void setup() {
   }
 
   /* END WIFI-CONNECTION */
+  Serial.println("Connecting to MQTT broker...");
+  if(!mqttClient.connect(MQTT_URL, MQTT_PORT)) {
+    Serial.print("failed to connect MQTT broker, error code: ");
+    Serial.println(mqttClient.connectError());
+    
+    while(1);
+  }
+  Serial.println("Connected to MQTT broker\n");
+  /* BEGIN MQTT-CONNECTION */
+
 }
 
 void loop() {
-  delay(2000);
-  Serial.println("Reading Temperature.");
+  mqttClient.poll();
+  unsigned long currentTime = millis();
+  static unsigned long previousTime = 0;
 
-  float humid = dht.readHumidity();
-  float temp = dht.readTemperature();
+  if(currentTime - previousTime >= 2000) {
+    previousTime = currentTime;
+    Serial.println("Reading Temperature.");
+    float humid = dht.readHumidity();
+    float temp = dht.readTemperature();
 
-  
-  if (isnan(humid) || isnan(temp)) {
-    Serial.println("Failed reading");
-    return;
-  }
+    if (isnan(humid) || isnan(temp)) {
+      Serial.println("Failed reading");
+      return;
+    }
+    Serial.printf("Temp: %.2f\n", temp);
+    Serial.printf("Humid: %.2f\n", humid);
 
-  Serial.printf("Temp: %.2f\n", temp);
-  Serial.printf("Humid: %.2f\n", humid);
+    Serial.print("Sending Temperature to Topic: ");
+    Serial.println(TOPIC_NAME);
+    Serial.println();
+
+    mqttClient.beginMessage(TOPIC_NAME);
+    mqttClient.print(temp);
+    mqttClient.endMessage();
+
+  }  
   
 }
