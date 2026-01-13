@@ -52,6 +52,8 @@ void setup() {
   }
 
   /* END WIFI-CONNECTION */
+
+  /* BEGIN MQTT-CONNECTION */
   Serial.println("Connecting to MQTT broker...");
   if(!mqttClient.connect(MQTT_URL, MQTT_PORT)) {
     Serial.print("failed to connect MQTT broker, error code: ");
@@ -60,7 +62,7 @@ void setup() {
     while(1);
   }
   Serial.println("Connected to MQTT broker\n");
-  /* BEGIN MQTT-CONNECTION */
+  /* END MQTT-CONNECTION */
 
 }
 
