@@ -53,7 +53,7 @@ void setup() {
 
 
 void Main();
-String getData(const char* url);
+String getData();
 
 void loop() {
   unsigned long currentTime = millis();
@@ -65,7 +65,42 @@ void loop() {
   }
 } 
 
+// https://qiita.com/Kento210/items/ca90bc981b1353d7e9ef
+String getData() {
+  WiFiClientSecure getClient;
+  getClient.setCACert(root_ca);
+
+  if(getClient.connect("api.switch-bot.com", 443)) {
+    String request = "GET https://api.switch-bot.com/v1.0/devices/" + deviceId + "/status" + " HTTP/1.1\r\n" +
+                  "Authorization:" + String(token) + "\r\n" + 
+                  "Connection: close\r\n\r\n";
+    
+    getClient.print(request);
+    getClient.flush();
+
+    Serial.println(request);
+    Serial.println(" ");
+
+    String line;
+    while (getClient.connected() || getClient_client.available()) {
+      if (getClient.available()) {
+        line = getClient.readStringUntil('\n');
+      }
+    }
+
+    if(getClient) getClient.stop();
+    return line;
+
+  } 
+  else {
+    Serial.println("Server Connection Error");
+    return "";
+  }
+}
+
 void Main() {
+  Serial.println(getData());
+  
   CoreS3.Display.fillScreen(TFT_BLACK);
   CoreS3.Display.setCursor(10, 50);
   CoreS3.Display.printf("気温: %0.1f °C", 0.223);
