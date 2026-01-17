@@ -1,13 +1,14 @@
 #pragma once
 #include <M5CoreS3.h>
 
-#define SOUND_PIN 37
 
 void setup() {
   auto cfg = M5.config();
   CoreS3.begin(cfg);
+  CoreS3.Power.begin();
   Serial.begin(9600);
-  pinMode(SOUND_PIN, OUTPUT);
+
+  CoreS3.Speaker.setVolume(64);
 
 }
 
@@ -27,5 +28,10 @@ void loop() {
 } 
 
 void Main(bool soundFlag) {
-  digitalWrite(SOUND_PIN, (soundFlag ? HIGH : LOW));
+  if(soundFlag) {
+    CoreS3.Speaker.tone(4000);
+  }
+  else {
+    CoreS3.Speaker.stop();
+  }
 }
