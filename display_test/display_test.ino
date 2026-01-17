@@ -21,9 +21,10 @@ void loop() {
     previousTime = currentTime;
     Main();
   }
+  
 } 
 
-char flag = 2;
+char flag = 1;
 void Main() {
   if(flag == 1) {
     CoreS3.Display.fillScreen(TFT_BLACK);

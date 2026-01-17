@@ -3,6 +3,8 @@
 #include <WiFi.h>
 #include <time.h>
 #include <ArduinoMqttClient.h>
+#include <cmath>
+#include <string>
 
 #define SSID "KOKI08-DYNABOOK 1420"
 #define WIFI_PASS "653R0o0<"
@@ -16,6 +18,7 @@
 #define MQTT_URL "test.mosquitto.org"
 #define TOPIC_NAME_0 "hidden"
 #define TOPIC_NAME_1 "hidden"
+
 
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
@@ -61,32 +64,83 @@ void setup() {
   if(!mqttClient.connect(MQTT_URL, MQTT_PORT)) {
     Serial.print("failed to connect MQTT broker, error code: ");
     Serial.println(mqttClient.connectError());
+    
     while(1);
   }
   Serial.println("Connected to MQTT broker\n");
+  mqttClient.subscribe(TOPIC_NAME_1);
+  mqttClient.subscribe(TOPIC_NAME_0);
   /* END MQTT-CONNECTION */
+  
 }
 
-void Main();
+void Main(bool flag, float absTemp);
 
 void loop() {
   mqttClient.poll();
   unsigned long currentTime = millis();
   static unsigned long previousTime = 0;
+  static float temp_1 = 0;
+  static float temp_0 = 0;
+
+  char isSafe = 1;
+  int msgSize = mqttClient.parseMessage();
+
+  if(msgSize) {
+    String topic = mqttClient.messageTopic();
+    Serial.print("Received a message from:");
+    Serial.println(topic);
+
+    String payload = "";
+    while (mqttClient.available()) {
+      payload += (char)mqttClient.read();
+    }
+    payload.trim();
+
+    Serial.println(payload);
+
+    if(topic.equals(TOPIC_NAME_1)) {
+      temp_1 = payload.toFloat();
+      Serial.println(temp_1);
+    }
+    else if(topic.equals(TOPIC_NAME_0)) {
+      temp_0 = payload.toFloat();
+      Serial.println(temp_0);
+    }
+
+  }
+
 
   if(currentTime - previousTime >= 2000) {
     previousTime = currentTime;
-    Main();
+
+    float diff = fabs(temp_1 - temp_0);
+    Serial.print("dif: ");
+    Serial.println(diff);
+
+    if(diff >= 10.0) isSafe = 2;
+    else isSafe = 1;
+    Main(isSafe, diff);
   }
 } 
 
-void Main() {
-  CoreS3.Display.fillScreen(TFT_BLACK);
-  CoreS3.Display.setCursor(10, 50);
-  CoreS3.Display.println("ステータス: 正常");
-  CoreS3.Display.setCursor(10, 80);
-  CoreS3.Display.printf("気温差: %0.2f °C", 0.223);
-  CoreS3.Display.setCursor(10, 120);
-  CoreS3.Display.printf("お湯の温度: %0.1f °C", 40.00);
+void Main(char flag, float absTemp) {
+
+  if(flag == 1) {
+    CoreS3.Display.fillScreen(TFT_BLACK);
+    CoreS3.Display.setTextColor(TFT_WHITE);
+    CoreS3.Display.setCursor(10, 50);
+    CoreS3.Display.println("ステータス: 正常");
+    CoreS3.Display.setCursor(10, 80);
+    CoreS3.Display.printf("気温差: %0.2f °C", absTemp);
+    CoreS3.Display.setCursor(10, 120);
+    CoreS3.Display.printf("湯の温度: %0.1f °C", 40.00);
+  }
+  else if(flag == 2) {
+    CoreS3.Display.fillScreen(TFT_WHITE);
+    CoreS3.Display.setTextColor(TFT_RED);
+    CoreS3.Display.setCursor(10, 50);
+    CoreS3.Display.println("警告: example");
+  }
 
 }
