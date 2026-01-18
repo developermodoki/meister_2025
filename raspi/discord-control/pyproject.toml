@@ -1,7 +1,7 @@
 [project]
 name = "line-control"
 version = "0.1.0"
-description = "The LINE-Bot Control Program for Carnot"
+description = "The Discord-Bot Control Program for Carnot"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []
