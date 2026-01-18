@@ -20,6 +20,8 @@
 #define MQTT_URL "test.mosquitto.org"
 #define TOPIC_NAME_0 "hidden"
 #define TOPIC_NAME_1 "hidden"
+#define WARN_TOPIC "hidden"
+
 
 #define TEMPSENSOR_PORT 14
 
@@ -92,10 +94,14 @@ void loop() {
   unsigned long currentTime = millis();
   static unsigned long previousTime = 0;
 
+  unsigned long currentTime2 = millis();
+  static unsigned long previousTime2 = 0;
+
   static float temp_1 = 0;
   static float temp_0 = 0;
   char flag = 1;
   float diff;
+  static bool isWarn = 0;
 
   int msgSize = mqttClient.parseMessage();
 
@@ -137,24 +143,39 @@ void loop() {
     Serial.println(diff);
 
     if(diff >= 10.0 && wTemp >= 42) {
+      isWarn = 1;
       flag = 2;
       CoreS3.Speaker.tone(4000);
     }
     else if(diff >= 10.0) {
+      isWarn = 1;
       flag = 3;
       CoreS3.Speaker.tone(4000);
     }
     else if(wTemp >= 42) {
+      isWarn = 1;
       flag = 2;
       CoreS3.Speaker.tone(4000);
     }
     else {
+      isWarn = 0;
       flag = 1;
       CoreS3.Speaker.stop();
     }
 
     Display(flag, diff, wTemp);
   }
+
+  if(currentTime2 - previousTime2 >= 1000 * 10) {
+    previousTime2 = currentTime2;
+    if(isWarn) {
+      mqttClient.beginMessage(WARN_TOPIC);
+      mqttClient.print("WARNING");
+      mqttClient.endMessage();
+    }
+  }
+
+
 }
 
 
