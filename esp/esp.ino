@@ -16,7 +16,7 @@
 #define NTP_3 "ntp.jst.mfeed.ad.jp"
 #define MQTT_PORT 1883
 #define MQTT_URL "test.mosquitto.org"
-#define TOPIC_NAME "hidden"
+#define TOPIC_NAME "TOKYO_CT_03_TEMP_0"
 
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);

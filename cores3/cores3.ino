@@ -8,9 +8,7 @@
 #include <cmath>
 #include <string>
 
-#define SSID "KOKI08-DYNABOOK 1420"
-#define WIFI_PASS "653R0o0<"
-//↑dummy ssid&pass
+#include "secret.h"
 
 #define NTP_1 "ntp.nict.jp"
 #define NTP_2 "ntp1.noc.titech.ac.jp"
@@ -18,10 +16,6 @@
 
 #define MQTT_PORT 1883
 #define MQTT_URL "test.mosquitto.org"
-#define TOPIC_NAME_0 "hidden"
-#define TOPIC_NAME_1 "hidden"
-#define WARN_TOPIC "hidden"
-
 
 #define TEMPSENSOR_PORT 14
 
