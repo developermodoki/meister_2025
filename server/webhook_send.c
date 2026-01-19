@@ -4,7 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <mosquitto.h>
-#include <curl/curl.h>
 #include "curl_send.h"
 
 
